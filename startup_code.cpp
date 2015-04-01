@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
+#include <bits/stdc++.h>
 
 
 // Format checker just assumes you have Alarm.bif and Solved_Alarm.bif (your file) in current directory
@@ -258,12 +259,110 @@ network read_network()
 }
 
 
+int line_count=0;
+vector< vector<int> > data;
+vector<int> miss_index;
+vector<double> prob;
+
+void read_dat(network a)
+{
+    ifstream record("records.dat");
+    bool missing=false;
+    int miss=-1;
+    char * tokens;
+    int t=0;
+    while(!record.eof())
+    {
+            
+            string st;
+            getline(record,st);
+            tokens=strtok((char*)st.c_str()," \"");
+            t=0;
+            vector<int> tmp;
+            miss=-1;
+            missing=false;
+            while(tokens!=0)
+            {
+               
+                if(strcmp(tokens,"?")==0)
+                {
+                    missing = true;
+                    miss=t;
+                    tmp.push_back(-1);
+
+                }
+                else{
+                    vector<string> v=a.get_nth_node(t).get_values();
+                    int len=v.size();
+                    for(int i=0;i<len;i++)
+                    {
+                        if(strcmp(tokens,v[i].c_str())==0)
+                        {
+                            tmp.push_back(i);
+                            break;
+                        }
+                    }    
+                }
+                tokens=strtok(NULL," \"");
+                t++;
+                
+            }
+            if(miss==-1)
+            {
+                data.push_back(tmp);
+                prob.push_back(1);
+                miss_index.push_back(-1);
+                line_count++;
+            }
+            else
+            {
+                vector<string> v=a[miss].get_values();
+                int l=v.size();
+                for(int i=0;i<l;i++)
+                {
+                    tmp[miss]=i;
+                    data.push_back(tmp);
+                    miss_index.push_back(miss);
+                    prob.push_back(1);
+                    line_count++;
+                }
+
+            }
+    }
+
+}
+
+
+
+
+
+
+// int len=a[i].get_values().size();
+//                 std::vector<int> temp1=a[i].get_values();
+//                 if(strcmp(tokens,"?")==0)
+//                     miss_index.push_back(i);
+//                 else
+//                 {
+//                     for(int j=0;j<len;j++)
+//                     {
+//                         if(strcmp(tokens,temp1[j].c_str())==0)
+//                         {
+//                             tmp.push_back(j);
+//                             break;
+//                         }
+//                     }
+//                 }
+
+
 int main()
 {
-	network Alarm;
-	Alarm=read_network();
+    Alarm=read_network();
     
 // Example: to do something
+    network Alarm;
+
+
+
 	cout<<"Perfect! Hurrah! \n";
 	
 }
