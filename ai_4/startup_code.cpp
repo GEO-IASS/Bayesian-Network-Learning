@@ -315,12 +315,12 @@ void print_data()
     }
 }
 
-void init_cpt(network a)
+void init_cpt(network *a)
 {
 
 
         vector<Graph_Node>::iterator It;
-        for(It=a.Pres_Graph.begin();It!=a.Pres_Graph.end();It++)
+        for(It=a->Pres_Graph.begin();It!=a->Pres_Graph.end();It++)
         {
             int var=It->nvalues;
           //  cerr << var << endl;
@@ -329,7 +329,7 @@ void init_cpt(network a)
             int l=par.size();
             for(int i=0;i<l;i++)
             {
-                var*=(a.search_node(par[i]))->get_nvalues();
+                var*=(a->search_node(par[i]))->get_nvalues();
             }
             vector<double> cpt;
             cpt.clear();
@@ -360,7 +360,7 @@ void init_cpt(network a)
             It->set_CPT(cpt);
 
         } 
-        for(It=a.Pres_Graph.begin();It!=a.Pres_Graph.end();It++)
+        for(It=a->Pres_Graph.begin();It!=a->Pres_Graph.end();It++)
         {
             std::vector<double> v=It->get_CPT();
             int l=v.size();
@@ -371,9 +371,11 @@ void init_cpt(network a)
             cout << endl;
         }
 
+
+
 }
 
-void set_weights(network net)
+void set_weights(network *net)
 {
 	for(int i=0;i<line_count;i++)
 	{
@@ -381,7 +383,7 @@ void set_weights(network net)
 			prob[i][0]=1;
 		else
 		{
-			Graph_Node * missing=net.get_nth_node(miss_index[i]);
+			Graph_Node * missing=net->get_nth_node(miss_index[i]);
 			double sum=0;
 			for(int k=0;k<missing->nvalues;k++)
 			{
@@ -391,7 +393,7 @@ void set_weights(network net)
 				int l=missing->Parents.size();
 				for(int j=0;j<l;j++)
 				{
-					index=index*(net.Pres_Graph[net.hash_node[missing->Parents[j]]].nvalues)+data[i][net.hash_node[missing->Parents[j]]];
+					index=index*(net->Pres_Graph[net->hash_node[missing->Parents[j]]].nvalues)+data[i][net->hash_node[missing->Parents[j]]];
 				}
 				tmp*=missing->CPT[index];
 				int m=missing->Children.size();
@@ -399,12 +401,12 @@ void set_weights(network net)
 				{
 
 					index=data[i][missing->Children[o]];
-					l=net.Pres_Graph[missing->Children[o]].Parents.size();
+					l=net->Pres_Graph[missing->Children[o]].Parents.size();
 					for(int j=0;j<l;j++)
 					{
-						index=index*(net.Pres_Graph[net.hash_node[net.Pres_Graph[missing->Children[o]].Parents[j]]].nvalues)+data[i][net.hash_node[net.Pres_Graph[missing->Children[o]].Parents[j]]];
+						index=index*(net->Pres_Graph[net->hash_node[net->Pres_Graph[missing->Children[o]].Parents[j]]].nvalues)+data[i][net->hash_node[net->Pres_Graph[missing->Children[o]].Parents[j]]];
 					}
-					tmp*=net.Pres_Graph[missing->Children[o]].CPT[index];
+					tmp*=net->Pres_Graph[missing->Children[o]].CPT[index];
 					
 
 				}
@@ -419,33 +421,36 @@ void set_weights(network net)
 	}
 }
 
-int check(int example, int node,network net)
+int check(int example, int node,network* net)
 {
-	int l=net.Pres_Graph[node].Parents.size();
+	int l=net->Pres_Graph[node].Parents.size();
 	for(int i=0;i<l;i++)
 	{
-		if(miss_index[example]==net.hash_node[net.Pres_Graph[node].Parents[i]])
+		if(miss_index[example]==net->hash_node[net->Pres_Graph[node].Parents[i]])
 			return i;
 	}
 	return -1;
 }
 
-void set_CPT(network net)
+void set_cpt(network *net)
 {
-	int l=net.Pres_Graph.size();
+	int l=net->Pres_Graph.size();
 	for(int i=0;i<l;i++)
 	{
-		int m=net.Pres_Graph[i].Parents.size();
+		cout << "i "<< i << endl;
+		int m=net->Pres_Graph[i].Parents.size();
 		int n=1;
 		for(int j=0;j<m;j++)
 		{
-			n*=net.Pres_Graph[net.hash_node[net.Pres_Graph[i].Parents[j]]].nvalues;
+			n*=net->Pres_Graph[net->hash_node[net->Pres_Graph[i].Parents[j]]].nvalues;
 		}
+
+		/// POTENTIAL INEFFICIENCIES BOTH SPACE AND TIME
 		double tmp[n];
 		for(int p=0;p<n;p++)
 			tmp[p]=0.0;
-		double CPT_new[n*net.Pres_Graph[i].nvalues];
-		for(int p=0;p<n*net.Pres_Graph[i].nvalues;p++)
+		double CPT_new[n*net->Pres_Graph[i].nvalues];
+		for(int p=0;p<n*net->Pres_Graph[i].nvalues;p++)
 			CPT_new[p]=0.0;
 		for(int a=0;a<line_count;a++)
 		{
@@ -455,7 +460,7 @@ void set_CPT(network net)
 				int index=data[a][i];
 				for(int j=0;j<m;j++)
 				{
-					index=index*(net.Pres_Graph[net.hash_node[net.Pres_Graph[i].Parents[j]]].nvalues)+data[a][net.hash_node[net.Pres_Graph[i].Parents[j]]];
+					index=index*(net->Pres_Graph[net->hash_node[net->Pres_Graph[i].Parents[j]]].nvalues)+data[a][net->hash_node[net->Pres_Graph[i].Parents[j]]];
 				}
 				CPT_new[index]+=1;
 				tmp[index%n]+=1;
@@ -466,17 +471,17 @@ void set_CPT(network net)
 				int np=1;
 				for(int j=in+1;j<m;j++)
 				{
-					np*=net.Pres_Graph[net.hash_node[net.Pres_Graph[i].Parents[j]]].nvalues;
+					np*=net->Pres_Graph[net->hash_node[net->Pres_Graph[i].Parents[j]]].nvalues;
 				}
 
 				int index=data[a][i];
 				for(int j=0;j<m;j++)
 				{
-					if(data[a][net.hash_node[net.Pres_Graph[i].Parents[j]]]==-1)
+					if(data[a][net->hash_node[net->Pres_Graph[i].Parents[j]]]==-1)
 						continue;
-					index=index*(net.Pres_Graph[net.hash_node[net.Pres_Graph[i].Parents[j]]].nvalues)+data[a][net.hash_node[net.Pres_Graph[i].Parents[j]]];
+					index=index*(net->Pres_Graph[net->hash_node[net->Pres_Graph[i].Parents[j]]].nvalues)+data[a][net->hash_node[net->Pres_Graph[i].Parents[j]]];
 				}
-				for(int op=0;op<net.Pres_Graph[miss_index[a]].nvalues;op++)
+				for(int op=0;op<net->Pres_Graph[miss_index[a]].nvalues;op++)
 				{
 					CPT_new[op*np+index]+=prob[a][op];
 					tmp[(op*np+index)%n]+=prob[a][op];
@@ -487,10 +492,10 @@ void set_CPT(network net)
 				int index=0;
 				for(int j=0;j<m;j++)
 				{
-					index=index*(net.Pres_Graph[net.hash_node[net.Pres_Graph[i].Parents[j]]].nvalues)+data[a][net.hash_node[net.Pres_Graph[i].Parents[j]]];
+					index=index*(net->Pres_Graph[net->hash_node[net->Pres_Graph[i].Parents[j]]].nvalues)+data[a][net->hash_node[net->Pres_Graph[i].Parents[j]]];
 				}
 				tmp[index]+=1;
-				for(int op=0;op<net.Pres_Graph[i].nvalues;op++)
+				for(int op=0;op<net->Pres_Graph[i].nvalues;op++)
 				{
 					CPT_new[op*n+index]+=prob[a][op];
 				}
@@ -499,12 +504,12 @@ void set_CPT(network net)
 
 
 		}
-		for(int g=0;g<n*net.Pres_Graph[i].nvalues;g++)
+		for(int g=0;g<n*net->Pres_Graph[i].nvalues;g++)
 		{
 			CPT_new[g]/=tmp[g%n];
 		}
 		vector<double> v(CPT_new,CPT_new+sizeof(CPT_new)/sizeof(CPT_new[0]));
-		net.Pres_Graph[i].set_CPT(v);
+		net->Pres_Graph[i].set_CPT(v);
 
 	}
 }
@@ -523,8 +528,25 @@ int main(int  argc, char ** argv)
     cout << size << endl;
     read_dat(Alarm,argv[3]);
     cout << "line count "<< line_count<< endl;
-    print_data();
-    init_cpt(Alarm);
+    //print_data();
+    init_cpt(&Alarm);
+    cout << "after init"<< endl;
+    for(int u=0;u<10;u++){
+    set_weights(&Alarm);
+    cout << "after set weights "<< endl;
+    set_cpt(&Alarm);
+    cout << "after set cpt"<< endl;}
+    vector<Graph_Node>::iterator It;
+            for(It=Alarm.Pres_Graph.begin();It!=Alarm.Pres_Graph.end();It++)
+        {
+            std::vector<double> v=It->get_CPT();
+            int l=v.size();
+            for(int i=0;i<l;i++)
+            {
+                cout << v[i] << " ";
+            }
+            cout << endl;
+        }	
 //     cout << line_count<< endl;
 // // Example: to do something
     
