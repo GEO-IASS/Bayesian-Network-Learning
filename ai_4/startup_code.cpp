@@ -239,7 +239,7 @@ int **data;
 int *miss_index;
 double ** prob;
 
-void read_dat(network net,char * file)
+void read_dat(network* net,char * file)
 {
     string f(file);
     ifstream record(file);
@@ -268,7 +268,7 @@ void read_dat(network net,char * file)
                 }
                 else{
                     string str(tokens);
-                    data[line_count][t]=net.Pres_Graph[t].val_ind[str];
+                    data[line_count][t]=net->Pres_Graph[t].val_ind[str];
                 }
                 tokens=strtok(NULL," ");
                 //cout << "token 2 "<< (void *)tokens<< endl;
@@ -285,7 +285,7 @@ void read_dat(network net,char * file)
             }
             else
             {
-                prob[line_count]=(double*)malloc(sizeof(double)*(net.get_nth_node(miss)->nvalues));
+                prob[line_count]=(double*)malloc(sizeof(double)*(net->get_nth_node(miss)->nvalues));
                 miss_index[line_count]=miss;
                 line_count++;
 
@@ -437,7 +437,7 @@ void set_cpt(network *net)
 	int l=net->Pres_Graph.size();
 	for(int i=0;i<l;i++)
 	{
-		cout << "i "<< i << endl;
+		//cout << "i "<< i << endl;
 		int m=net->Pres_Graph[i].Parents.size();
 		int n=1;
 		for(int j=0;j<m;j++)
@@ -477,8 +477,10 @@ void set_cpt(network *net)
 				int index=data[a][i];
 				for(int j=0;j<m;j++)
 				{
-					if(data[a][net->hash_node[net->Pres_Graph[i].Parents[j]]]==-1)
+					if(data[a][net->hash_node[net->Pres_Graph[i].Parents[j]]]==-1){
+						index=index*(net->Pres_Graph[net->hash_node[net->Pres_Graph[i].Parents[j]]].nvalues);
 						continue;
+					}
 					index=index*(net->Pres_Graph[net->hash_node[net->Pres_Graph[i].Parents[j]]].nvalues)+data[a][net->hash_node[net->Pres_Graph[i].Parents[j]]];
 				}
 				for(int op=0;op<net->Pres_Graph[miss_index[a]].nvalues;op++)
@@ -526,27 +528,42 @@ int main(int  argc, char ** argv)
     prob=(double**)malloc(sizeof(double*)*size);
     Alarm=read_network(argv[2]);
     cout << size << endl;
-    read_dat(Alarm,argv[3]);
+    read_dat(&Alarm,argv[3]);
     cout << "line count "<< line_count<< endl;
     //print_data();
     init_cpt(&Alarm);
     cout << "after init"<< endl;
-    for(int u=0;u<10;u++){
-    set_weights(&Alarm);
-    cout << "after set weights "<< endl;
-    set_cpt(&Alarm);
-    cout << "after set cpt"<< endl;}
     vector<Graph_Node>::iterator It;
-            for(It=Alarm.Pres_Graph.begin();It!=Alarm.Pres_Graph.end();It++)
+    for(It=Alarm.Pres_Graph.begin();It!=Alarm.Pres_Graph.end();It++)
+    {
+        std::vector<double> v=It->get_CPT();
+        int l=v.size();
+        cout << "new line "<< endl;
+        for(int i=0;i<l;i++)
         {
-            std::vector<double> v=It->get_CPT();
-            int l=v.size();
-            for(int i=0;i<l;i++)
-            {
-                cout << v[i] << " ";
-            }
-            cout << endl;
-        }	
+            cout << v[i] << " ";
+        }
+        cout << endl;
+    }
+    cout << " ------------------------------------------------------------"<< endl;
+    for(int u=0;u<1;u++){
+    set_weights(&Alarm);
+    //cout << "after set weights "<< endl;
+    set_cpt(&Alarm);
+    //cout << "after set cpt"<< endl;
+}
+    
+    for(It=Alarm.Pres_Graph.begin();It!=Alarm.Pres_Graph.end();It++)
+    {
+        std::vector<double> v=It->get_CPT();
+        int l=v.size();
+        cout << "new line "<< endl;
+        for(int i=0;i<l;i++)
+        {
+            cout << v[i] << " ";
+        }
+        cout << endl;
+    }	
 //     cout << line_count<< endl;
 // // Example: to do something
     
