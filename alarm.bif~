@@ -263,3 +263,4 @@ probability (  "VentLung"  "KinkedTube"  "VentTube"  "Intubation" ) { //4 variab
 probability (  "Intubation" ) { //1 variable(s) and 3 values
 	table -1 -1 -1 ;
 }
+
