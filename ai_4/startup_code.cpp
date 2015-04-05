@@ -418,6 +418,11 @@ void set_weights(network net)
 	}
 }
 
+void set_CPT()
+{
+	
+}
+
 int main(int  argc, char ** argv)
 {
     srand(time(NULL));
