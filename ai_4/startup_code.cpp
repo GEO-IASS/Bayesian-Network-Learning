@@ -385,7 +385,7 @@ void set_weights(network net)
 			double sum=0;
 			for(int k=0;k<missing->nvalues;k++)
 			{
-				data[i][miss_index[line_count]]=k;
+				data[i][miss_index[i]]=k;
 				double tmp=1;
 				int index=data[i][miss_index[i]];
 				int l=missing->Parents.size();
@@ -411,6 +411,7 @@ void set_weights(network net)
 				prob[i][k]=tmp;
 				sum+=tmp;
 			}
+			data[i][miss_index[i]]=-1;
 			for(int k=0;k<missing->nvalues;k++)
 				prob[i][k]/=sum;
 		}
@@ -418,9 +419,94 @@ void set_weights(network net)
 	}
 }
 
-void set_CPT()
+int check(int example, int node,network net)
 {
-	
+	int l=net.Pres_Graph[node].Parents.size();
+	for(int i=0;i<l;i++)
+	{
+		if(miss_index[example]==net.hash_node[net.Pres_Graph[node].Parents[i]])
+			return i;
+	}
+	return -1;
+}
+
+void set_CPT(network net)
+{
+	int l=net.Pres_Graph.size();
+	for(int i=0;i<l;i++)
+	{
+		int m=net.Pres_Graph[i].Parents.size();
+		int n=1;
+		for(int j=0;j<m;j++)
+		{
+			n*=net.Pres_Graph[net.hash_node[net.Pres_Graph[i].Parents[j]]].nvalues;
+		}
+		double tmp[n];
+		for(int p=0;p<n;p++)
+			tmp[p]=0.0;
+		double CPT_new[n*net.Pres_Graph[i].nvalues];
+		for(int p=0;p<n*net.Pres_Graph[i].nvalues;p++)
+			CPT_new[p]=0.0;
+		for(int a=0;a<line_count;a++)
+		{
+			int in=check(a,i,net);
+			if(miss_index[a]!=i && in==-1)
+			{
+				int index=data[a][i];
+				for(int j=0;j<m;j++)
+				{
+					index=index*(net.Pres_Graph[net.hash_node[net.Pres_Graph[i].Parents[j]]].nvalues)+data[a][net.hash_node[net.Pres_Graph[i].Parents[j]]];
+				}
+				CPT_new[index]+=1;
+				tmp[index%n]+=1;
+
+			}
+			else if(in!=-1)
+			{
+				int np=1;
+				for(int j=in+1;j<m;j++)
+				{
+					np*=net.Pres_Graph[net.hash_node[net.Pres_Graph[i].Parents[j]]].nvalues;
+				}
+
+				int index=data[a][i];
+				for(int j=0;j<m;j++)
+				{
+					if(data[a][net.hash_node[net.Pres_Graph[i].Parents[j]]]==-1)
+						continue;
+					index=index*(net.Pres_Graph[net.hash_node[net.Pres_Graph[i].Parents[j]]].nvalues)+data[a][net.hash_node[net.Pres_Graph[i].Parents[j]]];
+				}
+				for(int op=0;op<net.Pres_Graph[miss_index[a]].nvalues;op++)
+				{
+					CPT_new[op*np+index]+=prob[a][op];
+					tmp[(op*np+index)%n]+=prob[a][op];
+				}
+			}
+			else
+			{
+				int index=0;
+				for(int j=0;j<m;j++)
+				{
+					index=index*(net.Pres_Graph[net.hash_node[net.Pres_Graph[i].Parents[j]]].nvalues)+data[a][net.hash_node[net.Pres_Graph[i].Parents[j]]];
+				}
+				tmp[index]+=1;
+				for(int op=0;op<net.Pres_Graph[i].nvalues;op++)
+				{
+					CPT_new[op*n+index]+=prob[a][op];
+				}
+
+			}
+
+
+		}
+		for(int g=0;g<n*net.Pres_Graph[i].nvalues;g++)
+		{
+			CPT_new[g]/=tmp[g%n];
+		}
+		vector<double> v(CPT_new,CPT_new+sizeof(CPT_new)/sizeof(CPT_new[0]));
+		net.Pres_Graph[i].set_CPT(v);
+
+	}
 }
 
 int main(int  argc, char ** argv)
