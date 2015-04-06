@@ -20,7 +20,7 @@ public:
 	vector<string> Parents; // Parents of a particular node- note these are names of parents
 	int nvalues;  // Number of categories a variable represented by this node can take
 	vector<string> values; // Categories of possible values
-	vector<double> CPT; // conditional probability table as a 1-d array . Look for BIF format to understand its meaning
+	vector<long double> CPT; // conditional probability table as a 1-d array . Look for BIF format to understand its meaning
 
 	map<string,int> val_ind;
 	// Constructor- a node is initialised with its name and its categories
@@ -44,7 +44,7 @@ public:
 	{
 		return Parents;
 	}
-	vector<double> get_CPT()
+	vector<long double> get_CPT()
 	{
 		return CPT;
 	}
@@ -56,7 +56,7 @@ public:
 	{
 		return values;
 	}
-	void set_CPT(vector<double> new_CPT)
+	void set_CPT(vector<long double> new_CPT)
 	{
 		CPT.clear();
 		CPT=new_CPT;
@@ -213,7 +213,7 @@ network read_network(char * file)
        				ss2.str(line);
      				ss2>> temp;
        				ss2>> temp;
-       				vector<double> curr_CPT;
+       				vector<long double> curr_CPT;
                     string::size_type sz;
      				while(temp.compare(";")!=0)
      				{
@@ -237,7 +237,7 @@ network read_network(char * file)
 int line_count=0;
 int **data;
 int *miss_index;
-double ** prob;
+long double ** prob;
 
 void read_dat(network* net,char * file)
 {
@@ -279,13 +279,13 @@ void read_dat(network* net,char * file)
             if(miss==-1)
             {
                 miss_index[line_count]=-1;
-                prob[line_count]=(double*)malloc(sizeof(double));
+                prob[line_count]=(long double*)malloc(sizeof(long double));
                 line_count++;
                 cout << line_count<< endl;
             }
             else
             {
-                prob[line_count]=(double*)malloc(sizeof(double)*(net->get_nth_node(miss)->nvalues));
+                prob[line_count]=(long double*)malloc(sizeof(long double)*(net->get_nth_node(miss)->nvalues));
                 miss_index[line_count]=miss;
                 line_count++;
 
@@ -331,7 +331,7 @@ void init_cpt(network *a)
             {
                 var*=(a->search_node(par[i]))->get_nvalues();
             }
-            vector<double> cpt;
+            vector<long double> cpt;
             cpt.clear();
             cpt.resize(var,1.0);
             // for (int i = 0; i < cpt.size(); ++i)
@@ -362,7 +362,7 @@ void init_cpt(network *a)
         } 
         for(It=a->Pres_Graph.begin();It!=a->Pres_Graph.end();It++)
         {
-            std::vector<double> v=It->get_CPT();
+            std::vector<long double> v=It->get_CPT();
             int l=v.size();
             for(int i=0;i<l;i++)
             {
@@ -384,11 +384,11 @@ void set_weights(network *net)
 		else
 		{
 			Graph_Node * missing=net->get_nth_node(miss_index[i]);
-			double sum=0;
+			long double sum=0;
 			for(int k=0;k<missing->nvalues;k++)
 			{
 				data[i][miss_index[i]]=k;
-				double tmp=1;
+				long double tmp=1;
 				int index=data[i][miss_index[i]];
 				int l=missing->Parents.size();
 				for(int j=0;j<l;j++)
@@ -446,12 +446,12 @@ void set_cpt(network *net)
 		}
 
 		/// POTENTIAL INEFFICIENCIES BOTH SPACE AND TIME
-		double tmp[n];
+		long double tmp[n];
 		for(int p=0;p<n;p++)
-			tmp[p]=0.0;
-		double CPT_new[n*net->Pres_Graph[i].nvalues];
+			tmp[p]=0.000001*net->Pres_Graph[i].nvalues;
+		long double CPT_new[n*net->Pres_Graph[i].nvalues];
 		for(int p=0;p<n*net->Pres_Graph[i].nvalues;p++)
-			CPT_new[p]=0.0;
+			CPT_new[p]=0.000001*1.0;
 		for(int a=0;a<line_count;a++)
 		{
 			int in=check(a,i,net);
@@ -496,10 +496,11 @@ void set_cpt(network *net)
 				{
 					index=index*(net->Pres_Graph[net->hash_node[net->Pres_Graph[i].Parents[j]]].nvalues)+data[a][net->hash_node[net->Pres_Graph[i].Parents[j]]];
 				}
-				tmp[index]+=1;
+				
 				for(int op=0;op<net->Pres_Graph[i].nvalues;op++)
 				{
 					CPT_new[op*n+index]+=prob[a][op];
+					tmp[index]+=prob[a][op];
 				}
 
 			}
@@ -508,9 +509,10 @@ void set_cpt(network *net)
 		}
 		for(int g=0;g<n*net->Pres_Graph[i].nvalues;g++)
 		{
+			//cout << CPT_new[g]<<" "<< tmp[g%n]<< endl;
 			CPT_new[g]/=tmp[g%n];
 		}
-		vector<double> v(CPT_new,CPT_new+sizeof(CPT_new)/sizeof(CPT_new[0]));
+		vector<long double> v(CPT_new,CPT_new+sizeof(CPT_new)/sizeof(CPT_new[0]));
 		net->Pres_Graph[i].set_CPT(v);
 
 	}
@@ -521,11 +523,11 @@ int main(int  argc, char ** argv)
     srand(time(NULL));
     network Alarm;
     int size=atoi(argv[1]);
-    data=(int**)malloc(sizeof(int*)*size);
-    for(int i=0;i<size;i++)
+    data=(int**)malloc(sizeof(int*)*(size+2));
+    for(int i=0;i<size+2;i++)
     	data[i]=(int*)malloc(sizeof(int)*37);
-    miss_index=new int[size];
-    prob=(double**)malloc(sizeof(double*)*size);
+    miss_index=new int[size+2];
+    prob=(long double**)malloc(sizeof(long double*)*(size+2));
     Alarm=read_network(argv[2]);
     cout << size << endl;
     read_dat(&Alarm,argv[3]);
@@ -536,7 +538,7 @@ int main(int  argc, char ** argv)
     vector<Graph_Node>::iterator It;
     for(It=Alarm.Pres_Graph.begin();It!=Alarm.Pres_Graph.end();It++)
     {
-        std::vector<double> v=It->get_CPT();
+        std::vector<long double> v=It->get_CPT();
         int l=v.size();
         cout << "new line "<< endl;
         for(int i=0;i<l;i++)
@@ -546,7 +548,7 @@ int main(int  argc, char ** argv)
         cout << endl;
     }
     cout << " ------------------------------------------------------------"<< endl;
-    for(int u=0;u<1;u++){
+    for(int u=0;u<100;u++){
     set_weights(&Alarm);
     //cout << "after set weights "<< endl;
     set_cpt(&Alarm);
@@ -555,7 +557,7 @@ int main(int  argc, char ** argv)
     
     for(It=Alarm.Pres_Graph.begin();It!=Alarm.Pres_Graph.end();It++)
     {
-        std::vector<double> v=It->get_CPT();
+        std::vector<long double> v=It->get_CPT();
         int l=v.size();
         cout << "new line "<< endl;
         for(int i=0;i<l;i++)
