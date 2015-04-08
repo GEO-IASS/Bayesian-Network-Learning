@@ -572,6 +572,7 @@ int main(int  argc, char ** argv)
         cout << endl;
     }
     cout << " ------------------------------------------------------------"<< endl;
+<<<<<<< HEAD
     int u=0;
     while(get_wall_time()-start_time<550){
       cout << ++u << endl;
@@ -587,6 +588,7 @@ int main(int  argc, char ** argv)
     int pres_graph_i = 0;
     for (int i = 0; i < out_size; ++i)
     {
+<<<<<<< HEAD
     	if (output[i].find("-1") == std::string::npos)
     		outfile << output[i] << endl;
     	else
@@ -615,6 +617,7 @@ int main(int  argc, char ** argv)
     //     }
     //     cout << endl;
     // }	
+
 //     cout << line_count<< endl;
 // // Example: to do something
     
