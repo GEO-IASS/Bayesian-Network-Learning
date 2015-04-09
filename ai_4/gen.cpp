@@ -402,7 +402,7 @@ int sampling_ithnode(network Alarm,int* current_sample,int k)
 
 }
 
-int main()
+int main(int argc, char** argv)
 {
 	network Alarm;
 	Alarm=read_network();
@@ -413,8 +413,9 @@ int main()
     string feature;
     int n;
 
+    int num_rec = atoi(argv[1]);
     int current_sample[Alarm.netSize()];
-    for(int i=0;i<20000;i++)
+    for(int i=0;i<num_rec;i++)
     {
         for(int k=0;k<Alarm.netSize();k++)
             current_sample[k]=-1;
@@ -431,7 +432,7 @@ int main()
 
         
         print_sample(current_sample,Alarm);
-        if(i<20000-1)
+        if(i<num_rec-1)
         cout<<"\n";
     }
     

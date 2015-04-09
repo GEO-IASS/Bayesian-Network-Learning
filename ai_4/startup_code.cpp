@@ -84,14 +84,14 @@ public:
 
 };
 
-
+ int cnt=0;
  // The whole network represted as a list of nodes
 class network{
 
 public:
     vector <Graph_Node> Pres_Graph;
     map<string,int> hash_node;
-    int cnt=0;
+   
 	int addNode(Graph_Node node)
 	{
 		Pres_Graph.push_back(node);
@@ -256,22 +256,26 @@ void read_dat(network* net,char * file)
     ifstream record(file);
    // cerr << "asasa"<< endl;
     int miss=-1;
-    char * tokens;
+    string tokens;
     int t=0;
+    
     while(record.good())
     {
             
             string st;
             getline(record,st);
+           stringstream ss(st);
             //cout << "st "<< st<< endl;
-            tokens=strtok((char*)st.c_str()," ");
+            //tokens=strtok((char*)st.c_str()," ");
            // cout << "token 1 "<< tokens << endl;
             t=0;
             miss=-1;
-            while(tokens!=0)
+            while(ss>>tokens)
             {
                //cerr << " sds "<<tokens<< endl;
-                if(strcmp(tokens,"\"?\"")==0)
+                //if(strcmp(tokens,"\"?\"")==0 || strcmp(tokens,"\"?\"\n")==0)
+              //cout << tokens << endl;
+                if(tokens.compare("\"?\"") == 0)
                 {
                     miss=t;
                     data[line_count][t]=-1;
@@ -281,7 +285,7 @@ void read_dat(network* net,char * file)
                     string str(tokens);
                     data[line_count][t]=net->Pres_Graph[t].val_ind[str];
                 }
-                tokens=strtok(NULL," ");
+                //tokens=strtok(NULL," ");
                 //cout << "token 2 "<< (void *)tokens<< endl;
                 t++;
                 
@@ -292,7 +296,7 @@ void read_dat(network* net,char * file)
                 miss_index[line_count]=-1;
                 prob[line_count]=(long double*)malloc(sizeof(long double));
                 line_count++;
-                cout << line_count<< endl;
+                cout << "here "<<line_count<< endl;
             }
             else
             {
@@ -425,6 +429,7 @@ void set_weights(network *net)
 				sum+=tmp;
 			}
 			data[i][miss_index[i]]=-1;
+      //cout << sum << " sum "<< endl;
 			for(int k=0;k<missing->nvalues;k++)
 				prob[i][k]/=sum;
 		}
@@ -549,32 +554,34 @@ int main(int  argc, char ** argv)
     int size=atoi(argv[1]);
     data=(int**)malloc(sizeof(int*)*(size+2));
     for(int i=0;i<size+2;i++)
-    	data[i]=(int*)malloc(sizeof(int)*37);
+    	data[i]=(int*)malloc(sizeof(int)*39);
     miss_index=new int[size+2];
     prob=(long double**)malloc(sizeof(long double*)*(size+2));
     Alarm=read_network(argv[2]);
     cout << size << endl;
     read_dat(&Alarm,argv[3]);
     cout << "line count "<< line_count<< endl;
+  
     //print_data();
     init_cpt(&Alarm);
     cout << "after init"<< endl;
+   // return 0;
     vector<Graph_Node>::iterator It;
-    for(It=Alarm.Pres_Graph.begin();It!=Alarm.Pres_Graph.end();It++)
-    {
-        std::vector<long double> v=It->get_CPT();
-        int l=v.size();
-        cout << "new line "<< endl;
-        for(int i=0;i<l;i++)
-        {
-            cout << v[i] << " ";
-        }
-        cout << endl;
-    }
-    cout << " ------------------------------------------------------------"<< endl;
-<<<<<<< HEAD
+    // for(It=Alarm.Pres_Graph.begin();It!=Alarm.Pres_Graph.end();It++)
+    // {
+    //     std::vector<long double> v=It->get_CPT();
+    //     int l=v.size();
+    //     cout << "new line "<< endl;
+    //     for(int i=0;i<l;i++)
+    //     {
+    //         cout << v[i] << " ";
+    //     }
+    //     cout << endl;
+    // }
+    // cout << " ------------------------------------------------------------"<< endl;
+
     int u=0;
-    while(get_wall_time()-start_time<550){
+    while(u<100){
       cout << ++u << endl;
     set_weights(&Alarm);
     //cout << "after set weights "<< endl;
@@ -588,7 +595,6 @@ int main(int  argc, char ** argv)
     int pres_graph_i = 0;
     for (int i = 0; i < out_size; ++i)
     {
-<<<<<<< HEAD
     	if (output[i].find("-1") == std::string::npos)
     		outfile << output[i] << endl;
     	else

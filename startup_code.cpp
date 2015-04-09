@@ -267,6 +267,7 @@ vector<double> prob;
 void read_dat(network a)
 {
     ifstream record("records.dat");
+    //cerr << "asasa"<< endl;
     bool missing=false;
     int miss=-1;
     char * tokens;
@@ -276,15 +277,15 @@ void read_dat(network a)
             
             string st;
             getline(record,st);
-            tokens=strtok((char*)st.c_str()," \"");
+            tokens=strtok((char*)st.c_str()," ");
             t=0;
             vector<int> tmp;
             miss=-1;
             missing=false;
             while(tokens!=0)
             {
-               
-                if(strcmp(tokens,"?")==0)
+               //cerr << " sds "<<tokens<< endl;
+                if(strcmp(tokens,"\"?\"")==0)
                 {
                     missing = true;
                     miss=t;
@@ -292,18 +293,21 @@ void read_dat(network a)
 
                 }
                 else{
-                    vector<string> v=a.get_nth_node(t).get_values();
+                    //cerr << "here"<< endl;
+                    vector<string> v=(*a.get_nth_node(t)).get_values();
                     int len=v.size();
                     for(int i=0;i<len;i++)
                     {
+                        //cerr << tokens<< " "<< v[i].c_str() << endl;
                         if(strcmp(tokens,v[i].c_str())==0)
                         {
+                           //cerr << "pushing "<< endl;
                             tmp.push_back(i);
                             break;
                         }
                     }    
                 }
-                tokens=strtok(NULL," \"");
+                tokens=strtok(NULL," ");
                 t++;
                 
             }
@@ -316,10 +320,13 @@ void read_dat(network a)
             }
             else
             {
-                vector<string> v=a[miss].get_values();
+                vector<string> v=(*a.get_nth_node(miss)).get_values();
                 int l=v.size();
+                //cerr << "l "<< l << endl;
                 for(int i=0;i<l;i++)
                 {
+                    //cerr << "a"<< miss<< " len" << tmp.size()<< endl;
+                    //std::vector<int> tmp1(tmp.begin(),tmp.end());
                     tmp[miss]=i;
                     data.push_back(tmp);
                     miss_index.push_back(miss);
@@ -328,13 +335,27 @@ void read_dat(network a)
                 }
 
             }
+            //cerr << "end"<< endl;
     }
 
 }
 
 
 
+void print_data()
+{
+    int l=data.size();
 
+    for (int i = 0; i < l; ++i)
+    {
+        int k=data[i].size();
+        for (int j = 0; j < k; ++j)
+        {
+            cout << data[i][j]<< " ";
+        }
+        cout << endl;
+    }
+}
 
 
 // int len=a[i].get_values().size();
@@ -356,10 +377,13 @@ void read_dat(network a)
 
 int main()
 {
-    Alarm=read_network();
-    
-// Example: to do something
     network Alarm;
+    Alarm=read_network();
+    read_dat(Alarm);
+    print_data();
+    cout << line_count<< endl;
+// Example: to do something
+    
 
 
 
